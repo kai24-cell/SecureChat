@@ -1,0 +1,118 @@
+.appTitle{
+  text-align: left;
+  color: black;
+}
+.header{
+  background-color: greenyellow;
+}
+.searchInput{
+  width: 400px;
+  height: 20px;
+  text-align: center;
+}
+.messageInput{
+  width: 400px;
+  height: 50px;
+  text-align: center;
+}
+/* 全体を縦に並べる設定 */
+.container {
+  display: flex;
+  flex-direction: row; /* 縦(column)から横(row)に変更 */
+  
+  height: 100vh;      /* 画面いっぱいの高さ */
+  width: 100vw;       /* 画面いっぱいの幅 */
+  max-width: none;    /* 横幅の制限を解除 */
+  margin: 0;
+  padding: 0;
+  overflow: hidden;   /* 全体がスクロールするのを防ぐ */
+}
+
+/* 特定のグループだけを横に並べる設定 */
+.row-group {
+  display: flex;
+  flex-direction: row; /* 横並び */
+  align-items: center;
+  gap: 10px; /* 要素間の隙間 */
+}
+textarea {
+  width: 100%;       /* 基本は親の幅に合わせる */
+  max-width: 600px;  /* でも600px以上にはしない */
+  height: 100px;
+}
+.message-list {
+  flex: 1;           /* 残りのスペースをすべて使う */
+  overflow-y: auto;  /* 中身が溢れたらスクロールバーを出す */
+  padding: 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.slack-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 画面全体の高さに固定 */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.message-list {
+  flex: 1;           /* 残りのスペースをすべて使う */
+  overflow-y: auto;  /* 中身が溢れたらスクロールバーを出す */
+  padding: 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer {
+  padding: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.sidebar {
+  width: 260px;   /* サイドバーの幅を固定 */
+  background-color: green; 
+  color: white;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* 幅が縮まないように固定 */
+}
+
+.main-content {
+  flex: 1;        /* 残りの幅をすべて使う */
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  min-width: 0;   /* 文字溢れによるレイアウト崩れ防止 */
+}
+
+.messageList{
+  flex: 1;
+  overflow-y: auto;   /* ここだけスクロールさせる */
+  padding: 20px;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resizer {
+  width: 5px;
+  cursor: col-resize; /* 左右リサイズのカーソル */
+  background-color: transparent;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.resizer:hover, .resizer:active {
+  background-color: #ccc; /* ドラッグ中に色をつける */
+}
+
+.sidebar {
+  /* 固定幅(width)の設定を消し、インラインスタイルで制御するようにします */
+  background-color: #008000; /* 現在の緑色を維持 */
+  overflow: hidden;
+}
