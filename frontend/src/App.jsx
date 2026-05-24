@@ -7,7 +7,24 @@ function App() {
   const [sidebarWidth, setSidebarWidth] = useState(firstWidth); 
   const [isResizing, setIsResizing] = useState(false);
   const [messages, setMessages] = useState([]);//storage for messages
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState("")
+
+  const fetchMessages = async () => {
+      try {
+        const response = await fetch('http://localhost:8082/api/v1/posts');
+        if (response.ok) {
+          const data = await response.json();
+          setMessages(data); 
+        } 
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+    useEffect(() => {
+      fetchMessages();
+      const interval = setInterval(()=>{fetchMessages();}, 2000); // 2秒ごとにメッセージを更新
+      return () => clearInterval(interval); // クリーンアップ
+    }, []);
 // start sidebar resizing
   const startResizing = useCallback(() => {
     setIsResizing(true);
@@ -26,10 +43,12 @@ function App() {
         }
       }
     },
-    [isResizing]
+    [isResizing, minWidth, maxWidth]
   );
 // add event listeners for mousemove and mouseup to handle resizing
   useEffect(() => {
+    fetchMessages();
+    
     window.addEventListener("mousemove", resize);
     window.addEventListener("mouseup", stopResizing);
     return () => {
@@ -49,14 +68,14 @@ function App() {
       }; 
     const url = 'http://localhost:8082/api/v1/posts'; 
     try{
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(postRequest)
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postRequest)
     });
     if(response.ok){
-      setMessages([...messages, input]);
       setInput("");
+      fetchMessages(); // 送信後にメッセージを更新
       console.log("successfully sent message: " + input);
     }else{
       console.error("Failed to send message. Status: " + response.status);
@@ -83,14 +102,14 @@ function App() {
       <div className="resizer" onMouseDown={startResizing} />
       <main className="main-content">
         <header className="header">
-          <h2 className="appTitle">ShareEX</h2>
+          <h2 className="appTitle">SecureChat</h2>
           <button>秘密投稿</button>
           <textarea className="searchInput" placeholder="グループ内での検索"></textarea>
         </header>
         <div className="messageList">
           {messages.map((msg, index) => (
-            <div key={index} className="message">
-              {msg}
+            <div key={msg.id || index} className="message">
+              {msg.content}
             </div>
           ))}
         </div>
