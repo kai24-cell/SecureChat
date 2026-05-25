@@ -1,5 +1,5 @@
 package com.example.secureChat.dto;
 
-public record UserRegisterRequest(String Username, String Email, String Password) {
+public record UserRegisterRequest(String username, String email, String password) {
 
 }

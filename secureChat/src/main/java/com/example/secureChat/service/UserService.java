@@ -9,10 +9,12 @@ import com.example.secureChat.repository.UserRepository;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     public User registerUser(String username, String email, String rawpassword) {
@@ -21,6 +23,23 @@ public class UserService {
         }
         String hashedPassword = passwordEncoder.encode(rawpassword);
         User newUser = new User(username, email, hashedPassword, "USER");
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+        try {
+            emailService.sendRegisterEmail(email, username);
+            System.out.println("登録完了メールを送信しました:");
+        } catch (Exception e) {
+            // メール送信に失敗してもユーザー登録は成功させる
+            System.err.println("メール送信に失敗: " + e.getMessage());
+        }
+        return savedUser;
+    }
+
+    public User authenticate(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("メールアドレスまたはパスワードが間違っています。"));
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalStateException("メールアドレスまたはパスワードが間違っています。");
+        }
+        return user;
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.secureChat.dto.UserLoginRequest;
 import com.example.secureChat.dto.UserRegisterRequest;
 import com.example.secureChat.entity.User;
 import com.example.secureChat.service.UserService;
@@ -25,10 +26,21 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest request) {
         try {
-            User registeredUser = userService.registerUser(request.Username(), request.Email(), request.Password());
+            User registeredUser = userService.registerUser(
+                    request.username(), request.email(), request.password());
             return ResponseEntity.ok(registeredUser);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody UserLoginRequest request) {
+        try {
+            User user = userService.authenticate(request.email(), request.password());
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 }

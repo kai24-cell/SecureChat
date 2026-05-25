@@ -15,34 +15,32 @@
   height: 50px;
   text-align: center;
 }
-/* 全体を縦に並べる設定 */
 .container {
   display: flex;
-  flex-direction: row; /* 縦(column)から横(row)に変更 */
+  flex-direction: row; 
   
-  height: 100vh;      /* 画面いっぱいの高さ */
-  width: 100vw;       /* 画面いっぱいの幅 */
-  max-width: none;    /* 横幅の制限を解除 */
+  height: 100vh;     
+  width: 100vw;      
+  max-width: none;  
   margin: 0;
   padding: 0;
   overflow: hidden;   /* 全体がスクロールするのを防ぐ */
 }
 
-/* 特定のグループだけを横に並べる設定 */
 .row-group {
   display: flex;
-  flex-direction: row; /* 横並び */
+  flex-direction: row; 
   align-items: center;
-  gap: 10px; /* 要素間の隙間 */
+  gap: 10px; 
 }
 textarea {
-  width: 100%;       /* 基本は親の幅に合わせる */
-  max-width: 600px;  /* でも600px以上にはしない */
+  width: 100%;       
+  max-width: 600px; 
   height: 100px;
 }
 .message-list {
-  flex: 1;           /* 残りのスペースをすべて使う */
-  overflow-y: auto;  /* 中身が溢れたらスクロールバーを出す */
+  flex: 1;          
+  overflow-y: auto;
   padding: 20px;
   background-color: #f9f9f9;
   display: flex;
@@ -52,14 +50,14 @@ textarea {
 .slack-container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* 画面全体の高さに固定 */
+  height: 100vh; 
   max-width: 1000px;
   margin: 0 auto;
 }
 
 .message-list {
-  flex: 1;           /* 残りのスペースをすべて使う */
-  overflow-y: auto;  /* 中身が溢れたらスクロールバーを出す */
+  flex: 1;          
+  overflow-y: auto;  
   padding: 20px;
   background-color: #f9f9f9;
   display: flex;
@@ -73,25 +71,25 @@ textarea {
 }
 
 .sidebar {
-  width: 260px;   /* サイドバーの幅を固定 */
+  width: 260px;   
   background-color: green; 
   color: white;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0; /* 幅が縮まないように固定 */
+  flex-shrink: 0; 
 }
 
 .main-content {
-  flex: 1;        /* 残りの幅をすべて使う */
+  flex: 1;      
   display: flex;
   flex-direction: column;
   background-color: white;
-  min-width: 0;   /* 文字溢れによるレイアウト崩れ防止 */
+  min-width: 0;  
 }
 
 .messageList{
   flex: 1;
-  overflow-y: auto;   /* ここだけスクロールさせる */
+  overflow-y: auto;   
   padding: 20px;
   background-color: #f9f9f9;
   display: flex;
@@ -101,18 +99,69 @@ textarea {
 
 .resizer {
   width: 5px;
-  cursor: col-resize; /* 左右リサイズのカーソル */
+  cursor: col-resize; 
   background-color: transparent;
   transition: background-color 0.2s;
   flex-shrink: 0;
 }
 
 .resizer:hover, .resizer:active {
-  background-color: #ccc; /* ドラッグ中に色をつける */
+  background-color: #ccc; 
 }
 
 .sidebar {
-  /* 固定幅(width)の設定を消し、インラインスタイルで制御するようにします */
-  background-color: #008000; /* 現在の緑色を維持 */
+  background-color: #008000; 
   overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.error-text {
+  color: red;
+  font-size: 0.9em;
+  margin-top: -10px;
+  margin-bottom: 10px;
 }
