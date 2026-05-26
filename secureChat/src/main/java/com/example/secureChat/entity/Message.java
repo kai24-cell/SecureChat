@@ -29,6 +29,14 @@ public class Message {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "target_id", nullable = true)
+    private User targetUser;
+
+    @ManyToOne
+    @JoinColumn(name = "group_id", nullable = true)
+    private ChatGroup chatGroup;
+
     // Later, I have to add connections Loginfunction
     @PrePersist // 調べた: PrePersistは、エンティティをデータベースに初めて保存する直前に自動で呼び出される処理やアノテーションです。
     protected void onCreate() {

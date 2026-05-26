@@ -1,10 +1,17 @@
 package com.example.secureChat.service;
 
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.secureChat.entity.User;
 import com.example.secureChat.repository.UserRepository;
 
+/*
+明日の僕へ
+堅牢性のために@でメアドの形式チェックの機能についてなんだけど、フロントエンド側だけでしか弾いてないから、バックエンド側でも同様のチェックを入れた方がよさそう。
+*/
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -41,5 +48,9 @@ public class UserService {
             throw new IllegalStateException("メールアドレスまたはパスワードが間違っています。");
         }
         return user;
+    }
+
+    public List<com.example.secureChat.entity.User> getAllUsers() {
+        return userRepository.findAll();
     }
 }

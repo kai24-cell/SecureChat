@@ -10,6 +10,9 @@ function App() {
   const [input, setInput] = useState("")
   //認証関連
   const [currentUser, setCurrentUser] = useState(null);
+  //秘密投稿用
+  const [usersList, setUsersList] = useState([]);
+  const [targetUserId, setTargetUserId] = useState(""); 
   //新規登録
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [regUsername, setRegUsername] = useState("");
@@ -22,10 +25,46 @@ function App() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  // グループ作成用
+  const [groups, setGroups] = useState([]); 
+  const [activeGroupId, setActiveGroupId] = useState(null); 
+  const [isGroupCreateOpen, setIsGroupCreateOpen] = useState(false); 
+  const [newGroupName, setNewGroupName] = useState(""); 
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:8082/api/v1/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsersList(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchGroups = async () => {
+    try {
+      const response = await fetch('http://localhost:8082/api/v1/groups');
+      if (response.ok) {
+        const data = await response.json();
+        setGroups(data);
+        if (data.length > 0 && !activeGroupId) {
+          setActiveGroupId(data[0].id);// 最初のグループをアクティブにする
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    }
+  };
 
   const fetchMessages = async () => {
+    if(!activeGroupId) return; // グループが選択されていない場合は何もしない
       try {
-        const response = await fetch('http://localhost:8082/api/v1/posts');
+        const url = currentUser
+        ? `http://localhost:8082/api/v1/posts?groupId=${activeGroupId}&userId=${currentUser.id}`
+        : `http://localhost:8082/api/v1/posts?groupId=${activeGroupId}`;
+        const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
           setMessages(data); 
@@ -35,10 +74,14 @@ function App() {
       }
     };
     useEffect(() => {
+      fetchUsers();
+      fetchGroups();
+    }, []);
+    useEffect(() => {
       fetchMessages();
       const interval = setInterval(()=>{fetchMessages();}, 2000); // 2秒ごとにメッセージを更新
       return () => clearInterval(interval); // クリーンアップ
-    }, []);
+    }, [currentUser,activeGroupId]);
 // start sidebar resizing
   const startResizing = useCallback(() => {
     setIsResizing(true);
@@ -83,7 +126,9 @@ function App() {
     }
     const postRequest = {
        content: input ,
-       userId: currentUser.id
+       userId: currentUser.id,
+       targetUserId: targetUserId ? parseInt(targetUserId) : null,
+       groupId: activeGroupId
       }; 
     const url = 'http://localhost:8082/api/v1/posts'; 
     try{
@@ -94,10 +139,9 @@ function App() {
     });
     if(response.ok){
       setInput("");
+      setTargetUserId("");
       fetchMessages(); // 送信後にメッセージを更新
       console.log("successfully sent message: " + input);
-    }else{
-      console.error("Failed to send message. Status: " + response.status);
     }
   } catch (error) {
     console.error("Error sending message:", error);
@@ -174,6 +218,51 @@ function App() {
     setCurrentUser(null); 
     alert("ログアウトしました。");
   };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm("本当に削除しますか？")) return;
+    try {
+      const url = `http://localhost:8082/api/v1/posts/${messageId}?userId=${currentUser.id}`;
+      const response = await fetch(url, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchMessages();
+      } else {
+        const errorText = await response.text();
+        alert(`削除失敗: ${errorText}`);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    if (!newGroupName.trim()) return;
+
+    try {
+      const response = await fetch('http://localhost:8082/api/v1/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newGroupName })
+      });
+
+      if (response.ok) {
+        const createdGroup = await response.json();
+        setNewGroupName("");
+        setIsGroupCreateOpen(false);
+        fetchGroups(); 
+        setActiveGroupId(createdGroup.id); 
+      } else {
+        alert("グループの作成に失敗しました。");
+      }
+    } catch (error) {
+      console.error("Error creating group:", error);
+    }
+  };
+
   return (
     <div className="container">
       <aside className="sidebar" style={{ width: sidebarWidth }}>
@@ -190,12 +279,24 @@ function App() {
               <button onClick={() => setIsLoginOpen(true)}>ログイン</button>
             </div>
           )}
-          <button>グループ作成</button>
+          <button onClick={() => setIsGroupCreateOpen(true)}>グループ作成</button>
         </div>
-        <ul className="group-list">
-          <li>研究プロジェクト</li>
-          <li>サークル連絡</li>
-          <li>ShareEX 開発</li>
+        <ul className="group-list" style={{ listStyleType: 'none', padding: 0 }}>
+          {groups.map((group) => (
+            <li 
+              key={group.id} 
+              onClick={() => setActiveGroupId(group.id)}
+              style={{
+                cursor: 'pointer',
+                padding: '10px',
+                backgroundColor: activeGroupId === group.id ? '#4caf50' : 'transparent',
+                color: activeGroupId === group.id ? 'white' : '#333',
+                borderBottom: '1px solid #ddd'
+              }}
+            >
+              # {group.name}
+            </li>
+          ))}
         </ul>
       </aside>
       <div className="resizer" onMouseDown={startResizing} />
@@ -207,23 +308,46 @@ function App() {
         </header>
         <div className="messageList">
           {messages.map((msg, index) => (
-            <div key={msg.id || index} className="message">
+            <div key={msg.id || index} className="message" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
               <span style={{ fontWeight: 'bold', marginRight: '10px' }}>
                 {msg.user ? msg.user.username : "不明なユーザー"}
               </span>
+              {msg.targetUser &&(//秘密投稿のときは黄色のタグを表示
+                <span style={{ backgroundColor: '#ffeb3b', color: '#333',fontSize: '0.8em', padding: '2px 6px', borderRadius: '4px', marginRight: '10px' }}>
+                  {msg.targetUser.username}さんへの秘密投稿
+                </span>
+              )}
               {msg.content}
+              </div>
+              {currentUser && msg.user && currentUser.id === msg.user.id && (
+                <button onClick={() => handleDeleteMessage(msg.id)} style={{ backgroundColor: '#ff4d4d', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                >削除</button>
+              )}
             </div>
           ))}
         </div>
   
         <footer className="footer">
-          <div><textarea
+          <div style={{ display: 'flex',flexDirection: 'column', width: '100%',marginRight: '10px' }}>
+            <select value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)} style={{ marginBottom: '5px' ,padding: '5px', width: '200px', borderRadius: '4px', border: '1px solid #ccc' }}>
+              <option value="">全員に公開する</option>
+              {usersList.map((u) => (
+               currentUser && u.id !== currentUser.id && (
+                <option key={u.id} value={u.id}>
+                  {u.username}さんへの秘密投稿
+                </option>
+               )
+              ))}
+            </select>
+            <textarea
            className="messageInput"
-           placeholder="#メッセージを入力"
+           placeholder={activeGroupId ? "#メッセージを入力" : "グループを作成または選択してください"}
            value={input}
            onChange={(e) => setInput(e.target.value)}
            ></textarea></div>
-          <div><button onClick={handleSendMessage}>送信</button></div>
+          <div><button onClick={handleSendMessage} style={{ height: '100%', cursor: !activeGroupId ? 'not-allowed' : 'pointer' }}
+              disabled={!activeGroupId}>送信</button></div>
         </footer>
         </main>
       {isRegisterOpen && (
@@ -281,6 +405,25 @@ function App() {
           </div>
         </div>
       )}
+
+      {isGroupCreateOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>新しいグループを作成</h2>
+            <form onSubmit={handleCreateGroup}>
+              <div className="form-group">
+                <label>グループ名</label>
+                <input type="text" required value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} />
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => setIsGroupCreateOpen(false)}>キャンセル</button>
+                <button type="submit">作成する</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   
   )
